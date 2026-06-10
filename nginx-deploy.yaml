@@ -1,0 +1,49 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: demo
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: acr-secret
+  namespace: demo
+type: kubernetes.io/dockerconfigjson
+data:
+  .dockerconfigjson: eyJhdXRocyI6eyJjcnBpLWQ2aGpib2h1a3ZlNGh5MTUuY24tc2hhbmdoYWkucGVyc29uYWwuY3IuYWxpeXVuY3MuY29tIjp7InVzZXJuYW1lIjoiYWxpeXVuMjczNTAwMjY3MyIsInBhc3N3b3JkIjoiWHBoYXBpQDE2MyIsImF1dGgiOiJZV3hwZVhWdU1qY3pOVEF3TWpZM016cFljR2hoY0dsQU1UWXoifX19
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx
+  namespace: demo
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      imagePullSecrets:
+      - name: acr-secret
+      containers:
+      - name: nginx
+        image: crpi-d6hjbohukve4hy15.cn-shanghai.personal.cr.aliyuncs.com/ack_xp1/nginx:latest
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-svc
+  namespace: demo
+spec:
+  type: LoadBalancer
+  selector:
+    app: nginx
+  ports:
+  - port: 80
+    targetPort: 80
